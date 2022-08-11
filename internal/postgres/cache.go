@@ -1,13 +1,15 @@
 package postgres
 
 import (
+	"bytes"
+	"encoding/json"
 	"log"
 	"wb-l0/internal/postgres/models"
 )
 
 type Cache struct {
 	DBInst     *DB
-	CacheModel map[int64]*models.Model
+	CacheModel map[int]*models.Model
 }
 
 func NewCache(db *DB) *Cache {
@@ -22,15 +24,22 @@ func (c *Cache) Init(db *DB) {
 }
 
 func (c *Cache) GetCacheFromDatabase() {
-	log.Printf("check & download cache from database\n")
+	log.Printf("Проверяю и загружаю кеш из БД\n")
 	c.CacheModel = c.DBInst.SetCache(c)
 
 }
 
-func (c *Cache) AddModel(uid int64, m *models.Model) {
+func (c *Cache) AddModelCache(uid int, m *models.Model) {
 	c.CacheModel[uid] = m
 }
 
 func (c *Cache) CountElems() int {
 	return len(c.CacheModel)
+}
+
+func (c *Cache) ToString(id int) string {
+	buf := bytes.Buffer{}
+	marshal, _ := json.Marshal(c.CacheModel[id])
+	_ = json.Indent(&buf, marshal, "", "\t")
+	return buf.String()
 }

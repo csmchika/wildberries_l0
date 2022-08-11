@@ -12,18 +12,11 @@ func ConfigSetup() {
 	os.Setenv("DB_NAME", "postgres")
 	os.Setenv("DB_PORT", "5432")
 
-	os.Setenv("DB_POOL_MAXCONN", "5")
-	os.Setenv("DB_POOL_MAXCONN_LIFETIME", "300")
-
 	// NATS-Streaming settings
 	os.Setenv("NATS_HOSTS", "localhost")
 	os.Setenv("NATS_CLUSTER_ID", "l0-cluster")
 	os.Setenv("NATS_CLIENT_ID", "l0-client")
 	os.Setenv("NATS_SUBJECT", "w")
-	os.Setenv("NATS_DURABLE_NAME", "Replica-1")
-	os.Setenv("NATS_ACK_WAIT_SECONDS", "30")
+	os.Setenv("NATS_DURABLE_NAME", "Sub")
 
-	// Cache settings
-	os.Setenv("CACHE_SIZE", "10")
-	os.Setenv("APP_KEY", "WB-1")
 }

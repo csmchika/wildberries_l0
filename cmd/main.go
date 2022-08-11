@@ -5,14 +5,13 @@ import (
 	// "fmt"
 
 	"encoding/json"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 	"wb-l0/cmd/config"
 	postgres "wb-l0/internal/postgres"
 	"wb-l0/internal/postgres/models"
+	server "wb-l0/serve"
 
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
@@ -24,37 +23,35 @@ func main() {
 	config.ConfigSetup()
 	dbObject := postgres.NewDB()
 	cache := postgres.NewCache(dbObject)
-	log.Printf("count elems in cache %d", len(cache.CacheModel))
+	log.Printf("В кеше сейчас %d элементов", cache.CountElems())
+
 	connect, er := stan.Connect(os.Getenv("NATS_CLUSTER_ID"), os.Getenv("NATS_CLIENT_ID"))
 	if er != nil {
-		log.Fatal("не удалось подключиться к nats-streaming-server")
+		log.Fatal("Не удалось подключиться к nats-streaming-server")
 	}
-	log.Printf("connect good")
+
+	log.Printf("Подключение к БД и nats-streaming успешно")
 	_, err := connect.Subscribe(os.Getenv("NATS_SUBJECT"),
 		func(m *stan.Msg) {
-			log.Printf("You received a message!\n")
+			log.Printf("Ты получил сообщение!\n")
 			if messageHandler(cache, dbObject, m.Data) {
-				err := m.Ack() // в случае успешного сохранения msg уведомляем NATS.
+				err := m.Ack()
 				if err != nil {
-					log.Printf("ack() err: %s", err)
+					log.Printf("Ошибка ответа: %s", err)
 				}
 			}
 		},
-		stan.AckWait(time.Duration(30)*time.Second),      // Интервал тайм-аута - AckWait (30 сек default) - ожидание уведомления NATS о чтении сообщения
-		stan.DeliverAllAvailable(),                       // DeliverAllAvailable доставит все доступные сообщения
-		stan.DurableName(os.Getenv("NATS_DURABLE_NAME")), // долговечные подписки позволяют клиентам назначить постоянное имя подписке
-		// Это приводит к тому, что сервер потоковой передачи NATS отслеживает последнее подтвержденное сообщение для этого clientID + постоянное имя,
-		// так что клиенту будут доставлены только сообщения с момента последнего подтвержденного сообщения.
-		stan.SetManualAckMode(), // ручной режим подтверждения приема сообщения для подписки
+		stan.AckWait(time.Duration(30)*time.Second),
+		stan.DeliverAllAvailable(),
+		stan.DurableName(os.Getenv("NATS_DURABLE_NAME")),
+		stan.SetManualAckMode(),
 		stan.MaxInflight(10))
 	if err != nil {
-		panic(err)
+		log.Fatal("Ошибка подписки на канал")
 	}
-	log.Printf("subscribe end")
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "URL.Path = %q\n", r.URL.Path)
-	})
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	Server := server.NewServer(cache)
+	defer Server.Close()
+	defer dbObject.Disconnect()
 }
 
 // func CheckError(err error) {
@@ -62,28 +59,25 @@ func main() {
 // 		panic(err)
 // 	}
 // }
+
 func messageHandler(c *postgres.Cache, db *postgres.DB, data []byte) bool {
 	recievedModel := models.Model{}
 	var Validator = validator.New()
-	log.Printf("Создал, но не обработал")
 	err := json.Unmarshal(data, &recievedModel)
 	if err != nil {
-		log.Printf("error, %v\n", err)
+		log.Printf("Ошибка во время приведения типов %v\n", err)
 	}
 	err = Validator.Struct(recievedModel)
 	if err != nil {
-		log.Printf("messageHandler() error, %v\n", err)
-		// ошибка формата присланных данных. Пропускаем, сообщив серверу, что сообщение получили
-		return false
+		log.Printf("Ошибка валидации данных %v\n", err)
+		return true
 	}
-	log.Printf("unmarshal Order to struct")
-	var id int64
-	err = db.Open.QueryRow("INSERT INTO models (data) VALUES ($1) RETURNING uid", data).Scan(&id)
+	id, err := db.AddModelDB(data)
 	if err != nil {
-		log.Printf("Error adding model %v\n", err)
+		log.Printf("Ошибка во время добавления данных в БД %v\n", err)
 		return false
 	}
-	c.AddModel(id, &recievedModel)
-	log.Printf("There are %d elems in cache", c.CountElems())
+	c.AddModelCache(id, &recievedModel)
+	log.Printf("В кеше сейчас %d элементов", c.CountElems())
 	return true
 }

@@ -16,7 +16,7 @@ func (db *DB) Init() {
 	db.Open, err = sql.Open("postgres", psqlconn)
 
 	if err != nil {
-		log.Fatalf("%v: Init() error: %s\n", os.Getenv("DB_NAME"), err)
+		log.Fatalf("%v: Ошибка подключения к БД %s\n", os.Getenv("DB_NAME"), err)
 	}
 }
 func (db *DB) Disconnect() {
@@ -24,7 +24,7 @@ func (db *DB) Disconnect() {
 	if err != nil {
 		log.Panic(err)
 	} else {
-		log.Println("db disconnect")
+		log.Println("Отключение от БД")
 	}
 }
 

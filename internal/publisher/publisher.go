@@ -32,18 +32,18 @@ func main() {
 	repeat := 1
 	models, err := ReadAll("./jsons")
 	if err != nil {
-		log.Panic("err while read", err)
+		log.Panicf("Ошибка во время чтения файлов %v", err)
 		return
 	}
 	connect, _ := stan.Connect(os.Getenv("NATS_CLUSTER_ID"), os.Getenv("NATS_CLIENT_ID"))
 	for repeat > 0 {
-		for i, v := range *models {
+		for _, v := range *models {
 			err = connect.Publish(os.Getenv("NATS_SUBJECT"), v)
 			if err != nil {
-				log.Panic("producer err:", err)
+				log.Panicf("Ошибка отправки %v", err)
 				return
 			}
-			log.Println("\rPublished:", i+1)
+			log.Println("\rОтправил файлы")
 		}
 		repeat--
 	}
