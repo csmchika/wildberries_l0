@@ -23,6 +23,8 @@ import (
 func main() {
 	config.ConfigSetup()
 	dbObject := postgres.NewDB()
+	cache := postgres.NewCache(dbObject)
+	log.Printf("count elems in cache %d", len(cache.CacheModel))
 	connect, er := stan.Connect(os.Getenv("NATS_CLUSTER_ID"), os.Getenv("NATS_CLIENT_ID"))
 	if er != nil {
 		log.Fatal("не удалось подключиться к nats-streaming-server")
@@ -31,7 +33,7 @@ func main() {
 	_, err := connect.Subscribe(os.Getenv("NATS_SUBJECT"),
 		func(m *stan.Msg) {
 			log.Printf("You received a message!\n")
-			if messageHandler(dbObject, m.Data) {
+			if messageHandler(cache, dbObject, m.Data) {
 				err := m.Ack() // в случае успешного сохранения msg уведомляем NATS.
 				if err != nil {
 					log.Printf("ack() err: %s", err)
@@ -60,7 +62,7 @@ func main() {
 // 		panic(err)
 // 	}
 // }
-func messageHandler(db *postgres.DB, data []byte) bool {
+func messageHandler(c *postgres.Cache, db *postgres.DB, data []byte) bool {
 	recievedModel := models.Model{}
 	var Validator = validator.New()
 	log.Printf("Создал, но не обработал")
@@ -75,10 +77,13 @@ func messageHandler(db *postgres.DB, data []byte) bool {
 		return false
 	}
 	log.Printf("unmarshal Order to struct")
-	_, err = db.Open.Exec("INSERT INTO models (data) VALUES ($1)", data)
+	var id int64
+	err = db.Open.QueryRow("INSERT INTO models (data) VALUES ($1) RETURNING uid", data).Scan(&id)
 	if err != nil {
 		log.Printf("Error adding model %v\n", err)
 		return false
 	}
+	c.AddModel(id, &recievedModel)
+	log.Printf("There are %d elems in cache", c.CountElems())
 	return true
 }
