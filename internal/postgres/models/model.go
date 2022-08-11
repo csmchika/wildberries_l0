@@ -1,4 +1,4 @@
-package postgres
+package models
 
 import "time"
 
@@ -8,7 +8,7 @@ type Model struct {
 	TrackNumber string `json:"track_number"`
 	Entry       string `json:"entry"`
 	Delivery    struct {
-		Name    string `json:"name"`
+		Name    string `json:"name" validate:"required"`
 		Phone   string `json:"phone"`
 		Zip     string `json:"zip"`
 		City    string `json:"city"`

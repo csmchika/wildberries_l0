@@ -28,11 +28,11 @@ func ReadAll(path string) (res *[][]byte, err error) {
 }
 
 func main() {
-	repeat := 1
 	config.ConfigSetup()
+	repeat := 1
 	models, err := ReadAll("./jsons")
 	if err != nil {
-		log.Println(err)
+		log.Panic("err while read", err)
 		return
 	}
 	connect, _ := stan.Connect(os.Getenv("NATS_CLUSTER_ID"), os.Getenv("NATS_CLIENT_ID"))

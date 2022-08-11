@@ -5,7 +5,7 @@ import (
 )
 
 type DB struct {
-	open *sql.DB
+	Open *sql.DB
 	// csh  *Cache
 }
 
