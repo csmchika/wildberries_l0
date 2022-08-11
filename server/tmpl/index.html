@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildberries service</title>
+</head>
+<body>
+    <h1>в базе {{ .Count }} элементов</h1>
+    <form action="/" method="get">
+        <input name="model_id" required type="search" placeholder="Введите id">
+        <button>Найти</button>
+    </form>
+    <p>{{ .Model }}</p>
+</body>
+</html>

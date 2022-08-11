@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Model struct {
-	OrderUid    string `json:"order_uid"`
-	TrackNumber string `json:"track_number"`
-	Entry       string `json:"entry"`
+	OrderUid    string `json:"order_uid" validate:"required"`
+	TrackNumber string `json:"track_number" validate:"required"`
+	Entry       string `json:"entry" validate:"required"`
 	Delivery    struct {
 		Name    string `json:"name" validate:"required"`
 		Phone   string `json:"phone"`
@@ -14,7 +14,7 @@ type Model struct {
 		Address string `json:"address"`
 		Region  string `json:"region"`
 		Email   string `json:"email"`
-	} `json:"delivery"`
+	} `json:"delivery" validate:"required"`
 	Payment struct {
 		Transaction  string `json:"transaction"`
 		RequestId    string `json:"request_id"`
@@ -26,7 +26,7 @@ type Model struct {
 		DeliveryCost int    `json:"delivery_cost"`
 		GoodsTotal   int    `json:"goods_total"`
 		CustomFee    int    `json:"custom_fee"`
-	} `json:"payment"`
+	} `json:"payment" validate:"required"`
 	Items []struct {
 		ChrtId      int    `json:"chrt_id"`
 		TrackNumber string `json:"track_number"`
@@ -39,7 +39,7 @@ type Model struct {
 		NmId        int    `json:"nm_id"`
 		Brand       string `json:"brand"`
 		Status      int    `json:"status"`
-	} `json:"items"`
+	} `json:"items" validate:"required"`
 	Locale            string    `json:"locale"`
 	InternalSignature string    `json:"internal_signature"`
 	CustomerId        string    `json:"customer_id"`

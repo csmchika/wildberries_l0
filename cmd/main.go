@@ -11,7 +11,7 @@ import (
 	"wb-l0/cmd/config"
 	postgres "wb-l0/internal/postgres"
 	"wb-l0/internal/postgres/models"
-	server "wb-l0/serve"
+	"wb-l0/server"
 
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"

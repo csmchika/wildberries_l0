@@ -30,7 +30,7 @@ func (c *Cache) GetCacheFromDatabase() {
 }
 
 func (c *Cache) AddModelCache(uid int, m *models.Model) {
-	c.CacheModel[uid] = m
+	c.CacheModel[uid-1] = m
 }
 
 func (c *Cache) CountElems() int {

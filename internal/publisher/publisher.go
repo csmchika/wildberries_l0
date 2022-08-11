@@ -43,7 +43,7 @@ func main() {
 				log.Panicf("Ошибка отправки %v", err)
 				return
 			}
-			log.Println("\rОтправил файлы")
+			log.Println("Отправил файлы")
 		}
 		repeat--
 	}

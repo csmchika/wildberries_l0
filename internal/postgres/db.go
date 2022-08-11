@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"wb-l0/internal/postgres/models"
 )
@@ -25,9 +26,11 @@ func (db *DB) SetCache(c *Cache) map[int]*models.Model {
 	}
 	for rows.Next() {
 		var i int
-		var data *models.Model
+		var data []byte
 		rows.Scan(&i, &data)
-		m[i] = data
+		recievedModel := models.Model{}
+		_ = json.Unmarshal(data, &recievedModel)
+		m[i-1] = &recievedModel
 	}
 	defer rows.Close()
 	return m

@@ -16,7 +16,7 @@ func ConfigSetup() {
 	os.Setenv("NATS_HOSTS", "localhost")
 	os.Setenv("NATS_CLUSTER_ID", "l0-cluster")
 	os.Setenv("NATS_CLIENT_ID", "l0-client")
-	os.Setenv("NATS_SUBJECT", "w")
+	os.Setenv("NATS_SUBJECT", "we")
 	os.Setenv("NATS_DURABLE_NAME", "Sub")
 
 }
